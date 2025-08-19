@@ -23,13 +23,13 @@ class Transaction(db.Model):
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Welcome! Flask + MySQL + SQLAlchemy are running ✅"})
+    return jsonify({"message": "Welcome! Flask + MySQL + SQLAlchemy are running"})
     
 @app.route('/test-db')
 def test_db():
     try:
         db.session.execute(db.select(1))
-        return jsonify({"message": "Database connection successful ✅"})
+        return jsonify({"message": "Database connection successful"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
