@@ -5,6 +5,9 @@ from extensions import db, jwt
 def create_app():
     app = Flask(__name__)
 
+    import sys
+    sys.stdout.flush()
+    
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:0000@localhost:3306/flaskdb'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'change_this_secret'
@@ -13,7 +16,6 @@ def create_app():
 
     db.init_app(app)   
     jwt.init_app(app)
-
 
     from routers.auth import bp as auth_bp
     from routers.users import bp as users_bp

@@ -1,12 +1,13 @@
 from extensions import db
 from werkzeug.security import generate_password_hash
 from models.user import User, UserCredential
+from utils.exceptions import ValidationException, AppNotFoundException  
 
 def create_user_logic(data):
     if User.query.filter_by(email=data['email']).first():
-        return {"error": "Email already exists"}, 400
+        raise ValidationException()
     if UserCredential.query.filter_by(username=data['username']).first():
-        return {"error": "Username already exists"}, 400
+        raise ValidationException()
 
     new_user = User(name=data['name'], email=data['email'], role=data.get('role', 'user'))
     db.session.add(new_user)
@@ -28,7 +29,7 @@ def get_users_logic():
 def update_user_logic(user_id, data):
     user = User.query.get(user_id)
     if not user:
-        return {"error": "User not found"}, 404
+        raise AppNotFoundException()
 
     user.name = data.get('name', user.name)
     user.email = data.get('email', user.email)
@@ -40,7 +41,7 @@ def update_user_logic(user_id, data):
 def delete_user_logic(user_id):
     user = User.query.get(user_id)
     if not user:
-        return {"error": "User not found"}, 404
+        raise AppNotFoundException()
     db.session.delete(user)
     db.session.commit()
     return {"message": "User deleted"}
