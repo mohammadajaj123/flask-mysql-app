@@ -1,8 +1,11 @@
-# exceptions.py
 class CustomException(Exception):
     pass
 
 class AppNotFoundException(CustomException):
+    status_code = 404
+    default_message = "Not found Error!"
+
+class NotFoundException(CustomException):
     status_code = 404
     default_message = "Not found Error!"
 
@@ -17,6 +20,10 @@ class AuthorizationException(CustomException):
 class AuthenticationException(CustomException):
     status_code = 401
     default_message = "Authentication Error!"
+
+class AppException(CustomException):
+    status_code = 500
+    default_message = "Application error occurred"
 
 class InternalServerException(CustomException):
     status_code = 500

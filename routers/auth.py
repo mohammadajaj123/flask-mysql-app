@@ -5,6 +5,11 @@ from business_logic.auth_logic import login_logic
 
 bp = Blueprint("auth", __name__)
 
-@route(bp, "/login", methods=["POST"], validation=LoginSchema)
+@route(
+    bp, "/login", 
+    methods=["POST"], 
+    validation=LoginSchema
+)
 def login(validated_data):
+    """User login"""
     return login_logic(**validated_data)
