@@ -1,22 +1,27 @@
 from flask import Flask, jsonify
 import datetime
-from extensions import db, jwt   
+from extensions import db, jwt
+from services.salary_service import salary_service
+from dotenv import load_dotenv
+import os 
+from routers.telegram_test import bp as telegram_test_bp
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
-    import sys
-    sys.stdout.flush()
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:0000@localhost:3306/flaskdb'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://root:0000@localhost:3306/flaskdb')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'change_this_secret'
-    app.config['JWT_SECRET_KEY'] = 'change_this_jwt_secret'
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'change_this_secret')
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'change_this_jwt_secret')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
+    app.register_blueprint(telegram_test_bp, url_prefix="/telegram")
 
     db.init_app(app)   
     jwt.init_app(app)
-
+    salary_service.start()
+    
     from routers.auth import bp as auth_bp
     from routers.users import bp as users_bp
     from routers.transactions import bp as transactions_bp
