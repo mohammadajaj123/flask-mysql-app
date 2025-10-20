@@ -1,0 +1,65 @@
+name: Lint Changes
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install tools
+      run: pip install black flake8
+
+    - name: Get changed Python files
+      id: changed
+      run: |
+        # Get all changed Python files in this commit/PR
+        if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+          # For PRs, compare with base branch
+          BASE_SHA=$(git merge-base origin/$GITHUB_BASE_REF HEAD)
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA HEAD -- '*.py' | tr '\n' ' ')
+        else
+          # For pushes, compare with previous commit
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- '*.py' | tr '\n' ' ')
+        fi
+
+        # Remove empty lines and migration files
+        CHANGED_FILES=$(echo "$CHANGED_FILES" | sed '/^$/d' | grep -v migrations | grep -v __pycache__ || true)
+
+        echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+        echo "Files to check: $CHANGED_FILES"
+
+    - name: Run Black
+      if: steps.changed.outputs.changed_files != ''
+      continue-on-error: true
+      id: black
+      run: |
+        black --check ${{ steps.changed.outputs.changed_files }}
+
+    - name: Run Flake8
+      if: steps.changed.outputs.changed_files != ''
+      continue-on-error: true
+      id: flake8
+      run: |
+        flake8 ${{ steps.changed.outputs.changed_files }}
+
+    - name: Check results
+      run: |
+        if [ "${{ steps.black.outcome }}" = "failure" ] || [ "${{ steps.flake8.outcome }}" = "failure" ]; then
+          echo "Linting failed"
+          exit 1
+        else
+          echo "All checks passed"
+        fi
